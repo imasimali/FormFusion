@@ -42,14 +42,14 @@
     $mail = new PHPMailer(true);
     try {
         //Server settings
-        $mail->SMTPDebug = getenv('SMTP_DEBUG_LVL');
-        $mail->isSMTP();
-        $mail->Host = getenv('MAIL_SMTP_HOST');
-        $mail->SMTPAuth = true;
-        $mail->Username = getenv('MAIL_SMTP_USER');
-        $mail->Password = getenv('MAIL_SMTP_PASS');
-        $mail->SMTPSecure = 'tls';
-        $mail->Port = 587;
+        // $mail->SMTPDebug = getenv('SMTP_DEBUG_LVL');
+        // $mail->isSMTP();
+        // $mail->Host = getenv('MAIL_SMTP_HOST');
+        // $mail->SMTPAuth = true;
+        // $mail->Username = getenv('MAIL_SMTP_USER');
+        // $mail->Password = getenv('MAIL_SMTP_PASS');
+        // $mail->SMTPSecure = 'tls';
+        // $mail->Port = 587;
 
         //Recipients
         $mail->setFrom(getenv('SENDER_EMAIL'), getenv('SENDER_NAME'));
