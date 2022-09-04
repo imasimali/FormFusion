@@ -1,0 +1,11 @@
+Hallo,
+
+You have a new message from your website.
+
+Name: %%OSC0%%
+Company: %%OSC1%%
+E-Mail: %%OSC2%%
+Regarding: %%OSC3%%
+Message: %%OSC4%%
+
+Kind Regards!
