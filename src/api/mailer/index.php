@@ -12,64 +12,75 @@
     require_once '../../utilities/template-builder.php';
     require_once '../../utilities/transpiler.php';
 
-    $data = json_decode(file_get_contents('php://input'), true);
-
-    /* CHECK FAKE INPUT */
-    $fakeInputs = explode(',', getenv('FAKE_KEYS'));
-    foreach ($fakeInputs as $value) {
-        if(isset($data[$value]) && strlen($data[$value]) > 0) {
-            response(200, 'Message has been sent.');
-            die();
-        }
-    }
-
-    foreach ($required_keys as $value) {
-        if ( !isset($data[$value]) || strlen($data[$value]) <= 2 ) {
-            response(400, $label_keys[$value] . ' is required or you entered too short.');
-            die();
-        }
-    }
-
-    /* OPTIN START */
-    if (!isset($data[getenv('OPT_IN_KEY')])) {
-        response(400, 'Please accept the privacy policy and the general terms and conditions.');
-        die();
-    }
-    /* OPTIN END */
-
-    $email = build(getenv('TEMPLATE_NAME'), $data);
+    $required = array("name", "email", "message");
+    $fields = array("name", "email", "message", "phone", "company");
     
-    $mail = new PHPMailer(true);
-    try {
-        //Server settings
-        // $mail->SMTPDebug = getenv('SMTP_DEBUG_LVL');
-        // $mail->isSMTP();
-        // $mail->Host = getenv('MAIL_SMTP_HOST');
-        // $mail->SMTPAuth = true;
-        // $mail->Username = getenv('MAIL_SMTP_USER');
-        // $mail->Password = getenv('MAIL_SMTP_PASS');
-        // $mail->SMTPSecure = 'tls';
-        // $mail->Port = 587;
+    foreach ($required as $value) {
+            if ( !isset($_POST[$value]) || strlen($_POST[$value]) <= 2 ) {
+                    response(400, $label_keys[$value] . ' is required.');
+                    die();
+                }
+            }
 
-        //Recipients
-        $mail->setFrom(getenv('SENDER_EMAIL'), getenv('SENDER_NAME'));
-        $mail->addAddress(getenv('RECIEVER_EMAIL'), getenv('RECIEVER_NAME'));
-        // $mail->addReplyTo('info@example.com', 'Information');
-        // $mail->addCC('cc@example.com');
-        // $mail->addBCC('bcc@example.com');
+    if(isset($_POST)) {
+        // pour savoir si les champs valides - array that checks if the inputs are valid
+        $valid = array();
 
-        //Attachments
-        // $mail->addAttachment('/var/tmp/file.tar.gz');
-        // $mail->addAttachment('/tmp/image.jpg', 'new.jpg');
+        // for each parameter
+        // var_dump($_POST);
+        foreach ($_POST as $key => $value) {
+            // the key of each parameter
+            $postKey = $key;
+            // if the parameter exists in $_POST
+            // le champ aka parameter de post
+            $post = $value;
+            // security
+            $post = htmlspecialchars($post);
+            // verifications
+            if($postKey == "name" && strlen($post) < 20 && strlen($post) > 2) {
+                $valid["name"] = "valid";
+            }
+            elseif($postKey == "email" && strlen($post) > 5 && strlen($post) < 50 && preg_match("/^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,3})$/", $post)) {
+                $valid["email"] = "valid"; 
+            }
+            elseif($postKey == "message" && strlen($post) > 10 && strlen($post) < 500) {
+                $valid["message"] = "valid";   
+            }
+            elseif($postKey == "phone" && strlen($post) > 6 && is_numeric($post)) {
+                $valid["phone"] = "valid";
+            }
+            elseif($postKey == "company" && strlen($post) > 2 && strlen($post) < 50) {
+                $valid["company"] = "valid";
+            }
+            else {
+                // si ca matche pas avec les patterns de chaque if - if the current input does not match with it corresponding regex
+                // if(!array_keys($valid, $postKey))
+                response(400,  $label_keys[$postKey] . ' validation failed.', $post);
+                die();
+            }
+        }
+            
+        $email = build(getenv('TEMPLATE_NAME'), $_POST);
+        $mail = new PHPMailer(true);
 
-        //Content
-        $mail->isHTML(true);
-        $mail->Subject = 'New message from your website';
-        $mail->Body    = $email['html'];
-        $mail->AltBody = $email['text'];
+        try {
 
-        $mail->send();
-        response(200, 'Message has been sent.', $_POST);
-    } catch (Exception $e) {
-        response(500, 'Message could not be sent.', $mail->ErrorInfo);
+            //Recipients
+            $mail->setFrom(getenv('SENDER_EMAIL'), getenv('SENDER_NAME'));
+            $mail->addAddress(getenv('RECIEVER_EMAIL'), getenv('RECIEVER_NAME'));
+            
+            //Content
+            $mail->isHTML(true);
+            $mail->Subject = 'New message from your website';
+            $mail->Body    = $email['html'];
+            $mail->AltBody = $email['text'];
+
+            $mail->send();
+            response(200, 'Message has been sent.', $_POST);
+        } catch (Exception $e) {
+            response(500, 'Message could not be sent.', $mail->ErrorInfo);
+        }
+
+    } else {
+        response(400, 'Message could not be sent.', "Not Post Method");
     }
