@@ -12,11 +12,16 @@
     require_once '../../utilities/template-builder.php';
     require_once '../../utilities/transpiler.php';
 
-    $domain = parse_url($_SERVER['HTTP_HOST']);
-    $_POST['domain'] = $domain['path'];
-    
+    header("Access-Control-Allow-Origin: *");
+    header("Access-Control-Allow-Credentials: true");
+    header("Access-Control-Max-Age: 1000");
+    header("Access-Control-Allow-Headers: X-Requested-With, Content-Type, Origin, Cache-Control, Pragma, Authorization, Accept, Accept-Encoding");
+    header("Access-Control-Allow-Methods: GET, POST");
+
     if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST)) {
         // var_dump($_POST);
+        
+        $_POST['domain'] .= $_SERVER['HTTP_REFERER'];
 
         foreach ($required_keys as $value) {
                 if ( !isset($_POST[$value]) || strlen($_POST[$value]) <= 2 ) {
@@ -31,10 +36,10 @@
             if($key == "name" && strlen($post) < 20 && strlen($post) > 2) {
                 continue;
             }
-            elseif($key == "email" && strlen($post) > 5 && strlen($post) < 50 && preg_match("/^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,3})$/", $post)) {
+            elseif($key == "email" && strlen($post) > 5 && strlen($post) < 50 && preg_match("/^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/", $post)) {
                 continue; 
             }
-            elseif($key == "message" && strlen($post) > 10 && strlen($post) < 500) {
+            elseif($key == "message" && strlen($post) > 5 && strlen($post) < 500) {
                 continue;   
             }
             elseif($key == "phone" && strlen($post) > 6 && is_numeric($post)) {
@@ -43,7 +48,7 @@
             elseif($key == "company" && strlen($post) > 2 && strlen($post) < 50) {
                 continue;
             }
-            elseif($key == "domain" && strlen($post) > 2 && strlen($post) < 50) {
+            elseif($key == "domain" && strlen($post) > 0 && strlen($post) < 50) {
                 continue;
             }
             else {
