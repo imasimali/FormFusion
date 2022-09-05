@@ -8,3 +8,5 @@
         $temp = explode(':', $value);
         $label_keys[$temp[0]] = $temp[1];
     }
+
+    $required_keys = explode(',', getenv('REQUIRED_KEYS'));

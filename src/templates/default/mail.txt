@@ -1,6 +1,6 @@
 Hallo,
 
-You have a new message from your website.
+You have a new message from your website %%DOMAIN%%.
 
 Name: %%NAME%%
 Company: %%COMPANY%%

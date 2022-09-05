@@ -12,50 +12,42 @@
     require_once '../../utilities/template-builder.php';
     require_once '../../utilities/transpiler.php';
 
-    $required = array("name", "email", "message");
-    $fields = array("name", "email", "message", "phone", "company");
+    $domain = parse_url($_SERVER['HTTP_HOST']);
+    $_POST['domain'] = $domain['path'];
     
-    foreach ($required as $value) {
-            if ( !isset($_POST[$value]) || strlen($_POST[$value]) <= 2 ) {
-                    response(400, $label_keys[$value] . ' is required.');
-                    die();
-                }
-            }
-
-    if(isset($_POST)) {
-        // pour savoir si les champs valides - array that checks if the inputs are valid
-        $valid = array();
-
-        // for each parameter
+    if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST)) {
         // var_dump($_POST);
+
+        foreach ($required_keys as $value) {
+                if ( !isset($_POST[$value]) || strlen($_POST[$value]) <= 2 ) {
+                        response(400, $label_keys[$value] . ' is required.', $_POST);
+                        die();
+                    }
+                }
+
         foreach ($_POST as $key => $value) {
-            // the key of each parameter
-            $postKey = $key;
-            // if the parameter exists in $_POST
-            // le champ aka parameter de post
-            $post = $value;
-            // security
-            $post = htmlspecialchars($post);
+            $post = htmlspecialchars($value);
             // verifications
-            if($postKey == "name" && strlen($post) < 20 && strlen($post) > 2) {
-                $valid["name"] = "valid";
+            if($key == "name" && strlen($post) < 20 && strlen($post) > 2) {
+                continue;
             }
-            elseif($postKey == "email" && strlen($post) > 5 && strlen($post) < 50 && preg_match("/^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,3})$/", $post)) {
-                $valid["email"] = "valid"; 
+            elseif($key == "email" && strlen($post) > 5 && strlen($post) < 50 && preg_match("/^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,3})$/", $post)) {
+                continue; 
             }
-            elseif($postKey == "message" && strlen($post) > 10 && strlen($post) < 500) {
-                $valid["message"] = "valid";   
+            elseif($key == "message" && strlen($post) > 10 && strlen($post) < 500) {
+                continue;   
             }
-            elseif($postKey == "phone" && strlen($post) > 6 && is_numeric($post)) {
-                $valid["phone"] = "valid";
+            elseif($key == "phone" && strlen($post) > 6 && is_numeric($post)) {
+                continue;
             }
-            elseif($postKey == "company" && strlen($post) > 2 && strlen($post) < 50) {
-                $valid["company"] = "valid";
+            elseif($key == "company" && strlen($post) > 2 && strlen($post) < 50) {
+                continue;
+            }
+            elseif($key == "domain" && strlen($post) > 2 && strlen($post) < 50) {
+                continue;
             }
             else {
-                // si ca matche pas avec les patterns de chaque if - if the current input does not match with it corresponding regex
-                // if(!array_keys($valid, $postKey))
-                response(400,  $label_keys[$postKey] . ' validation failed.', $post);
+                response(400,  $label_keys[$key] . ' validation failed.', $post);
                 die();
             }
         }
@@ -64,7 +56,6 @@
         $mail = new PHPMailer(true);
 
         try {
-
             //Recipients
             $mail->setFrom(getenv('SENDER_EMAIL'), getenv('SENDER_NAME'));
             $mail->addAddress(getenv('RECIEVER_EMAIL'), getenv('RECIEVER_NAME'));
@@ -75,12 +66,12 @@
             $mail->Body    = $email['html'];
             $mail->AltBody = $email['text'];
 
+            //Sending Message
             $mail->send();
             response(200, 'Message has been sent.', $_POST);
         } catch (Exception $e) {
             response(500, 'Message could not be sent.', $mail->ErrorInfo);
         }
-
     } else {
-        response(400, 'Message could not be sent.', "Not Post Method");
+        response(400, 'Message could not be sent.', "Only POST Method is supported.");
     }
