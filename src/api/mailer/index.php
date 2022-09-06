@@ -21,7 +21,9 @@
     if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST)) {
         // var_dump($_POST);
         
-        $_POST['domain'] .= $_SERVER['HTTP_REFERER'];
+        if(isset($_SERVER['HTTP_REFERER'])) {
+            $_POST['domain'] = $_SERVER['HTTP_REFERER'];
+             }
 
         foreach ($required_keys as $value) {
                 if ( !isset($_POST[$value]) || strlen($_POST[$value]) <= 2 ) {
